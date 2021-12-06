@@ -1,5 +1,9 @@
 # Terraform Training
 
+## IaC and Its Benefits
+
+![Iac and Its benefit](assets/infrastructure_as_code-and-its-benefit.png)
+
 ## Install Terraform and Terraform Provider
 
 ### Install Terraform
@@ -28,6 +32,36 @@ sudo apt-get update && sudo apt-get install terraform
 terraform -help
 ```
 
+### Setting AWS configuration
+
+```bash
+aws configure
+```
+
+### Naming Conventions
+
+#### General conventions
+
+- Use `_` (underscore) instead of `-` (dash) in all: resource names, data source names, variable names, outputs.
+- Only use lowercase letters and numbers.
+
+#### Resource and data source arguments
+
+- Resource and data source arguments
+  - Good: `resource "aws_route_table" "public" {}`
+  - Bad: `resource "aws_route_table" "public_route_table" {}`
+  - Bad: `resource "aws_route_table" "public_aws_route_table" {}`
+- Resource name should be named `this` / `main` if there is no more descriptive and general name available, or if resource module creates single resource of this type (eg, there is single resource of type `aws_nat_gateway` and multiple resources of type `aws_route_table`, so `aws_nat_gateway` should be named `this` / `main` and `aws_route_table` should have more descriptive names - like `private`, `public`, `database`).
+- Naming Convention for AWS Resources:\
+  `${Product}_${Environment}_${ComponentType}_${ServiceName}_${ServiceComponent}_${ComponentReference}`\
+  A Lambda function would then have a Name like the following:\
+  - `ProductA_Stag_Lambda_Integration_Requeue_C140`
+  - `ProductA_Prod_IAMRole_Integration_C141`
+  - `ProductA_Prod_EC2_Web_Master_C142`
+- Always use singular nouns for names.
+- Use `-` inside arguments values and in places where value will be exposed to a human (eg, inside DNS name of RDS instance).
+- [More...](https://www.terraform-best-practices.com/naming)
+
 ### Terraform Providers
 
 - Provider are Terraform's way of **abstracting** integrations with **API control layer** of the infratstructure vendors
@@ -43,6 +77,9 @@ terraform -help
 ### Workflow
 
 - `Write → Plan → Apply`
+
+  ![What is the Terraform Workflow](assets/terraform_workflow.png)
+
   - `Write`: Create code.
   - `Plan`: Review change / Does not deploy. \
   In this state authentication credentials are used to connect your infrastructre if required.
@@ -53,12 +90,28 @@ terraform -help
 
 ### State
 
+- Its map real world resource to Terraform configuration
 - Resource tracking: A way for Terraform to keep tabs on what has been deployed
 - `terraform.tfstate`: A JSON dump containing all the metadata about your Terraform deployment. Stored locally in the same directory where Terraform code resides.
-- For better integrity and availability `terraform.tfstate` can also be stored remotely.
+- For better integrity and availability `terraform.tfstate` can also be stored remotely. Allow sharing state between distributed team via AWS S3, GCP Storage.
+  - Remote state allows locking so parrallel executions dont coincide
+
+    ![Terrafrom remote state storage](assets/terraform_state-remote_storage.png)
+  - Enable sharing "output" values with other Terraform configuration or code
+
+    ![Terrafrom remote output sharing](assets/terraform_state-remote_output.png)
 - Because the state file is so critical to Terraform's functionality so:
   - **Never lose it**
   - **Never let it into wrong hands even**
+- Scenario use Terraform state command:
+  - Advanced state management
+  - Manually remove a resource from Terraform State file so that it not managed by Terraform\
+    `terraform state rm`
+  - Listing out tracked resource\
+    `terrform state list`
+  - Show the details resources\
+    `terraform state show`
+
 
 ### Resource Addressing
 
@@ -194,7 +247,7 @@ terraform -help
 - Terraform way of bootstrap custom scripts, commands or actions
 - Can be run either locally or remotely on resource spun up through Terraform deployment
 - Each individual resource can have its own "provisioner" defining the connection method (SSH/WinRM) and the actions/commands or scripts to excute
-- 2 types of provisioners
+- 2 types of provisioners (run once)
   - Creation-time
   - Destroy-time
 
