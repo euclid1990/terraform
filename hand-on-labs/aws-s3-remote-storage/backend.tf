@@ -9,6 +9,6 @@ terraform {
     profile = "demo"
     region  = "us-east-1"
     key     = "terraform.tfstate"
-    bucket  = "<AWS-S3-BUCKET-NAME-GOES-HERE>"
+    bucket  = "euclid1990-terraform-remote-storage"
   }
 }

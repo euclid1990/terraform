@@ -35,8 +35,17 @@ terraform -help
 ### Setting AWS configuration
 
 ```bash
+# Configure  AWS  CLI
 aws configure
+# Disable the pager for a single command use
+aws configure set cli_pager ""
+# Lists  the  IAM  users
+aws iam list-users
+# Lists all managed policies that are attached to the specified IAM user
+aws iam list-attached-user-policies --user-name {your_aws_user_name}
 ```
+
+- To create policies that control the access to AWS, use [AWS Policy Generator](https://awspolicygen.s3.amazonaws.com/policygen.html)
 
 ### Naming Conventions
 
