@@ -28,7 +28,7 @@ s3Location=$(aws s3api create-bucket --bucket $s3Bucket --region $region --acl p
 read userId userArn < <(echo $(aws iam create-user --user-name $username | jq -r '.User.UserId, .User.Arn'))
 
 # Replace bash variables and write to new policy file
-policyDocument=$(cat policy.json | sed -e "s/\${s3Bucket}/${s3Bucket}/g" -e "s/\${userArn}/${userArn}/g")
+policyDocument=$(cat policy.json | sed -e "s#\${s3Bucket}#${s3Bucket}#g" -e "s#\${userArn}#${userArn}#g")
 
 # Creates a new managed policy for your AWS account.
 policyArn=$(aws iam create-policy --policy-name $policyname \
@@ -49,5 +49,8 @@ AccessKeyId     = $accessKeyId
 SecretAccessKey = $secretAccessKey"
 
 echo "====== AWS configure command ======
-aws configure set aws_access_key_id $accessKeyId
-aws configure set aws_secret_access_key $secretAccessKey"
+aws configure set aws_access_key_id $accessKeyId --profile terraform
+aws configure set aws_secret_access_key $secretAccessKey --profile terraform
+aws configure set region $region --profile terraform
+aws configure set output json --profile terraform
+export AWS_DEFAULT_PROFILE=terraform"

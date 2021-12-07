@@ -6,9 +6,9 @@ terraform {
   }
   required_version = ">= 0.13"
   backend "s3" {
-    profile = "demo"
+    profile = "terraform"
     region  = "us-east-1"
     key     = "terraform.tfstate"
-    bucket  = "euclid1990-terraform-remote-storage"
+    bucket  = "<AWS-S3-BUCKET-NAME-GOES-HERE>"
   }
 }
