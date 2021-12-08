@@ -8,6 +8,25 @@ set -eu
 # with a non-zero status, or zero if all commands exit successfully.
 set -o pipefail
 
+print_usage() {
+  printf "Usage: $ ./setup.sh -a {access_key_id} -s {secret_key_id}"
+  exit 1
+}
+
+# Using flags to passing input to a script
+while getopts a:s: flag
+do
+    case "${flag}" in
+      a) fAccessKeyId=${OPTARG};;
+      s) fSecretAccessKey=${OPTARG};;
+      *) print_usage;;
+    esac
+done
+# [$#] is a special variable in bash, that expands to the number of arguments
+if [ $# -ne 4 ]; then
+  print_usage;
+fi
+
 # Timestamp
 timestamp=$(date '+%Y%m%d%H%M%S')
 # Define AWS S3 bucket
@@ -18,6 +37,14 @@ username="Bob-$timestamp"
 policyname="policy-$timestamp"
 # Define Region
 region=us-east-1
+
+# Configure root AWS profile
+aws configure set aws_access_key_id $fAccessKeyId --profile admin
+aws configure set aws_secret_access_key $fSecretAccessKey --profile admin
+aws configure set region $region --profile admin
+aws configure set output json --profile admin
+aws configure set cli_pager "" --profile admin
+export AWS_PROFILE=admin
 
 # Create S3 bucket
 s3Location=$(aws s3api create-bucket --bucket $s3Bucket --region $region --acl private | jq -r '.Location')
@@ -53,4 +80,5 @@ aws configure set aws_access_key_id $accessKeyId --profile terraform
 aws configure set aws_secret_access_key $secretAccessKey --profile terraform
 aws configure set region $region --profile terraform
 aws configure set output json --profile terraform
-export AWS_DEFAULT_PROFILE=terraform"
+aws configure set cli_pager '""' --profile terraform
+export AWS_PROFILE=terraform"

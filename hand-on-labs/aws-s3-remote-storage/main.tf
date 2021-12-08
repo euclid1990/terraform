@@ -1,15 +1,14 @@
-provider "docker" {}
-
-resource "docker_image" "nginx-image" {
-  name = "nginx"
+provider "aws" {
+  region = "us-east-1"
 }
 
-resource "docker_container" "nginx" {
-  image = docker_image.nginx-image.latest
-  name  = "nginx"
-  ports {
-    internal = 80
-    external = var.external_port
-    protocol = "tcp"
+resource "aws_s3_bucket" "s3" {
+  bucket = "${var.bucket_name}"
+  acl    = "${var.acl_value}"
+  versioning {
+    enabled = false
+  }
+  tags = {
+    Environment = "Test"
   }
 }
