@@ -307,6 +307,8 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 
 ### Accessing and Using Terraform Modules
 
+![Terraform Module](assets/terraform_module.png)
+
 - Terraform module is a container for multiple resources that are used together
   - Make code reusable.
 - Directory hold main Terraform code is called the `root` module.
@@ -339,6 +341,3 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
     subnet_id = module.my-vpc-module.subnet-id
   }
   ```
-
-### Interacting with Terraform Module Inputs and Outputs
-
