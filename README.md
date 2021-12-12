@@ -47,14 +47,26 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 
 - To create policies that control the access to AWS, use [AWS Policy Generator](https://awspolicygen.s3.amazonaws.com/policygen.html)
 
-### Naming Conventions
+### Terraform Providers
 
-#### General conventions
+- Provider are Terraform's way of **abstracting** integrations with **API control layer** of the infratstructure vendors
+- **Terraform Providers registry**\
+  <https://registry.terraform.io/browse/providers>
+  - Example: [AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest), [AWS Provider Document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+
+- Providers are **plugins**.
+- You can write your own custom providers as well.
+
+---
+
+## Naming Conventions
+
+### General conventions
 
 - Use `_` (underscore) instead of `-` (dash) in all: resource names, data source names, variable names, outputs.
 - Only use lowercase letters and numbers.
 
-#### Resource and data source arguments
+### Resource and data source arguments
 
 - Resource and data source arguments
   - Good: `resource "aws_route_table" "public" {}`
@@ -71,15 +83,7 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 - Use `-` inside arguments values and in places where value will be exposed to a human (eg, inside DNS name of RDS instance).
 - [More...](https://www.terraform-best-practices.com/naming)
 
-### Terraform Providers
-
-- Provider are Terraform's way of **abstracting** integrations with **API control layer** of the infratstructure vendors
-- **Terraform Providers registry**\
-  <https://registry.terraform.io/browse/providers>
-  - Example: [AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest), [AWS Provider Document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
-
-- Providers are **plugins**.
-- You can write your own custom providers as well.
+---
 
 ## Key Concept
 
@@ -296,3 +300,45 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
     }
   }
   ```
+
+---
+
+## Terraform Modules
+
+### Accessing and Using Terraform Modules
+
+- Terraform module is a container for multiple resources that are used together
+  - Make code reusable.
+- Directory hold main Terraform code is called the `root` module.
+  - If you never work with modules before. Definitely always worked inside the root module.
+  - If you invoke other modules inside your code. Newly referenced modules are known as child modules.
+- Modules can be downloaded or referenced from
+  - Terraform Public/Private/Local Registry
+- Module are referenced using `module` block
+
+  ```terraform
+  module "my-vpc-module" {
+    source  = "./module/vpc"
+    version = "0.0.5"
+    region  = var.region
+  }
+  ```
+
+  `module`: Reversed keyword\
+  `"my-vpc-module"`: Module name\
+  `source`: Module source\
+  `version`: Module version\
+  `region`: Input parameters
+  - Other allowed parameters: `count`, `for_each`, `provider`, `depends_on`
+
+- Module can take optionally take input and provide outputs to pluck back main code.
+
+  ```terraform
+  resource "aws_instance" "vpc-module" {
+    ... # Other arguments
+    subnet_id = module.my-vpc-module.subnet-id
+  }
+  ```
+
+### Interacting with Terraform Module Inputs and Outputs
+
