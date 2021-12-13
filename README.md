@@ -341,3 +341,167 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
     subnet_id = module.my-vpc-module.subnet-id
   }
   ```
+
+---
+
+## Built-in Function and Dynamic Blocks
+
+### Terraform Built-in Functions
+
+- Help you transform and combine values. Making code dynamic and flexible.
+- User-defined function is not allowed -- Only built-in ones
+- General syntax: function_name(arg1, arg2, ...)
+
+  ```terraform
+  variable "project-name" {
+    type    = string
+    default = "prod"
+  }
+
+  resource "aws_vpc" "my-vpc" {
+    cidr_block = "10.0.0.0/16"
+    tags = {
+      Name = join("-", ["terraform", var.project-name])
+    }
+  }
+  ```
+
+  `join`: Function result = `terraform-prod`
+
+- Useful functions can be found [here](https://www.terraform.io/docs/language/functions/index.html)
+- For testing function, use interactive console for evaluating:
+
+  ````bash
+  terraform console
+  ````
+
+### Terraform Type Constraints (Collections & Structural)
+
+- Primitive Type
+  - number
+  - string
+  - blool
+- Complex Type
+  - list
+  - tuple
+  - map
+  - object
+- Collections Type
+  - Allow multi values of one primitive type to be grouped together
+  - Constructor for these Collections include:
+    - list(type)
+    - map(type)
+    - set(type)
+
+      ```terraform
+      variable "training" {
+        type    = list(string)
+        default = ["ACG", "LA"]
+      }
+      ```
+
+      - Variable will be `list` of several `string`
+      - Two seperate `strings` in one variable
+
+- Structural Type
+  - Allow multi values of different primitive type to be grouped together
+  - Constructor for these Structural include:
+    - object(type)
+    - tuple(type)
+    - set(type)
+
+      ```terraform
+      variable "instructor" {
+        type = object({
+          name = string
+          age  = number
+        })
+      }
+      ```
+
+      - Primitive types is serveral named attributes
+      - Object type contain several variables within it
+
+- Dynamic Type - The `any` constraint
+  - `any` is a placeholder for a primitive type yet to be decided
+  - Allow us more flexiblility
+
+  ```terraform
+  variable "data" {
+    type = list(any)
+    default = [1, 42, 7]
+  }
+  ```
+
+  - Terraform recognizes all values as number in one variable
+
+### Terraform Dynamic Blocks
+
+- What
+  - Dynamically constructs repeatable nested configuration block inside Terraform resource
+  - Support within the following block types
+    - resource
+    - data
+    - provider
+    - provisioner
+- Why
+  - Make your code block look cleaner
+    - Normal snippet of Terraform without dynamic block
+
+      ```terraform
+      resource "aws_security_group" "my-sg" {
+        name   = 'my-aws-security-group'
+        vpc_id = aws_vpc.my-vpc.id
+        ingress {
+          from_port  = 22
+          to_port    = 22
+          protocol   = "tcp"
+          cidr_block = ["1.2.3.4/32"]
+        }
+        ingress {
+          ... # More ingress rules
+        }
+      }
+      ```
+
+    - Using dynamic block
+
+      ```terraform
+      variable "rules" {
+        default = [
+          {
+            port  = 80
+            proto = "tcp"
+            cidr_blocks = ["0.0.0.0/0"]
+          },
+          {
+            port  = 22
+            proto = "tcp"
+            cidr_blocks = ["1.2.3.4/32"]
+          }
+        ]
+      }
+
+      resource "aws_security_group" "my-sg" {
+        name = 'my-aws-security-group'
+        vpc_id = aws_vpc.my-vpc.id
+        dynamic "ingress" {
+          for_each = var.rules
+          content {
+            from_port = ingress.value["port"]
+            to_port = ingress.value["port"]
+            protocol = ingress.value["proto"]
+            cidr_block = ingress.value["cidrs"]
+          }
+        }
+      }
+      ```
+
+      `dynamic "ingress"` is the config block you're trying to replicate\
+      Nested `content` block defines the body of each generated block, using the variable you provided
+- How
+  - Dynamic block expect a complex variable type to iterate over
+  - For loop and outputs a nested block for each element in your variable
+- Caution
+  - Can be make code hard to read and maintain
+  - Only use dynamic block when you need to hide detail in order to build a cleaner user interface when writing reusable modules
