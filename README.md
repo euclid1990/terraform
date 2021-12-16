@@ -505,3 +505,79 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 - Caution
   - Can be make code hard to read and maintain
   - Only use dynamic block when you need to hide detail in order to build a cleaner user interface when writing reusable modules
+
+---
+
+## Terraform CLI
+
+### Terraform fmt, taint, and import Commands
+
+#### Terraform fmt (format)
+
+- What
+  - Format Terraform code for readability
+  - Helps in keeping code consistent
+  - Safe to run at any time
+- When
+  - Before pushing code to git
+  - After upgrade Terraform or it modules
+  - Anytime you make change the codes
+- How
+
+  ```bash
+  terraform fmt
+  ```
+
+### Terraform taint
+
+- What
+  - Taints a resource, forcing it to be destroyed and recreated
+  - Modifier state file, which causes the recreation workflow
+  - Tainting a resource may cause other resources to be modified
+- When
+  - To cause provision to run
+  - Replace misbehaving resources forcefully
+  - To mimic side effects of recreation not modeled by any attributes of the resources
+- How
+
+  ```bash
+  terraform taint {resource_address}
+  ```
+
+### Terraform import
+
+- What
+  - Map existing resource to Terraform using `"ID"`
+  - `"ID"` is dependent on the underlying vendor, for example to import an AWS EC2 instance you 'll need to provide its instance ID
+  - Import same resource to multiple Terraform resources can cause unknow behavior and its is not recommended
+- When
+  - Work with existing resource
+  - Not allowed create new resource
+  - Not in control of creation process of infrastructure
+- How
+
+  ```bash
+  terraform import {resource_address} {ID}
+  ```
+
+### Terraform Configuration Block
+
+- What
+  - A special configuration block for controlling Terraform own behavior
+  - This block only allows constant values, named resources and variables are not allowed in it.
+- When
+  - Configuring backend for storing state files
+  - Specify Terraform version
+  - Specify Terraform provider version
+  - Enable and test Terraform experimental features
+  - Passing metadate to provider
+- How
+
+  ```bash
+  terraform {
+    required_version = ">=0.13.0"
+    required_providers {
+      aws = ">=3.0.0"
+    }
+  }
+  ```
