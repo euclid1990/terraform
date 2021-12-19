@@ -528,7 +528,7 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
   terraform fmt
   ```
 
-### Terraform taint
+#### Terraform taint
 
 - What
   - Taints a resource, forcing it to be destroyed and recreated
@@ -544,7 +544,7 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
   terraform taint {resource_address}
   ```
 
-### Terraform import
+#### Terraform import
 
 - What
   - Map existing resource to Terraform using `"ID"`
@@ -560,7 +560,7 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
   terraform import {resource_address} {ID}
   ```
 
-### Terraform Configuration Block
+#### Terraform Configuration Block
 
 - What
   - A special configuration block for controlling Terraform own behavior
@@ -580,4 +580,75 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
       aws = ">=3.0.0"
     }
   }
+  ```
+
+### Terraform Workspace
+
+#### CLI
+
+- What
+  - Terraform Workspaces are alternate state files within same directory
+    - Eeach workspace tracks a seperate independent copy of the state file
+  - Terraform starts with a single workspace that is always called `default`. It cannot be deleted
+  - Commands
+    | Workspace command                             | Use              |
+    | --------------------------------------------- | ---------------- |
+    | `terraform workspace list`                    | List workspace   |
+    | `terraform workspace new <WORKSPACE-NAME>`    | Create workspace |
+    | `terraform workspace select <WORKSPACE-NAME>` | Select workspace |
+  - Access to Workspace name is provided through the `${terraform.workspace}` variable
+- When
+  - Test changes using parallel, distinct copy of infrastructure to diffrent environment
+  - It can be modeled againts branches in version control such as Git
+#### Workspace Example
+
+  ```text
+           Terraform Controller node
+
+                       ↓
+
+            ${terraform.workspace}
+
+  (developer) ↓                ↓ (default)
+
+       Developer Test         Default Production
+       Infrastructure           Infrastructure
+        Environment              Environment
+  ```
+
+- Example 1
+
+  ```terraform
+  resource "aws_instance" "example" {
+    count = terraform.workspace == "default" ? 5 : 1
+    # ... other arguments
+  }
+  ```
+
+- Example 2
+
+  ```terraform
+  resource "aws_s3_bucket" "bucket" {
+    bucket = "myxyzbucket-${terraform.workspace}"
+    acl    = private
+  }
+  ```
+
+- Note
+  - `terraform.tfstate`: Default state file maintaince by the default workspace
+  - `terraform.d.tfstate`: Any Workspace state files are stored inside this file
+
+### Debugging Terrform
+
+#### TF_LOG and TF_LOG_PATH
+
+- `TF_LOG` is an environment variable for enabling verbose logging in Terraform. By default it will send logs to `stderr` (standard error output).
+- Can be set to the following levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`
+- `TRACE` is most verbose level of logging and most reliable one
+- To persist logged output, use `TF_LOG_PATH` environment variable
+- Setting logging environment varibales for Terraform *Nix
+
+  ```bash
+  export TF_LOG=TRACE
+  export TF_LOG_PATH=./terraform.log
   ```
