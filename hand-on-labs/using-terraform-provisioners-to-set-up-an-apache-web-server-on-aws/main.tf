@@ -13,7 +13,7 @@ locals {
 # Create key-pair for logging into EC2 in us-east-1
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair
 resource "aws_key_pair" "webserver_key" {
-  key_name  = "webserver_key"
+  key_name   = "webserver_key"
   public_key = file("${var.public_key_path}")
   tags = {
     Name = "${local.prefix}_VPC_Main"
@@ -118,7 +118,7 @@ resource "aws_security_group" "sg" {
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"  # Semantically equivalent to all
+    protocol    = "-1" # Semantically equivalent to all
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -155,7 +155,7 @@ resource "aws_instance" "webserver" {
       host        = self.public_ip
     }
   }
-  tags= {
+  tags = {
     Name = "${local.prefix}_EC2_Webserver"
   }
 }
