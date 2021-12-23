@@ -531,7 +531,7 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 #### Terraform taint
 
 - What
-  - Taints a resource, forcing it to be destroyed and recreated
+  - Taints a resource, forcing it to be destroyed and recreated in next `terraform apply`
   - Modifier state file, which causes the recreation workflow
   - Tainting a resource may cause other resources to be modified
 - When
@@ -636,7 +636,16 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 
 - Note
   - `terraform.tfstate`: Default state file maintaince by the default workspace
-  - `terraform.d.tfstate`: Any Workspace state files are stored inside this file
+  - `terraform.d.tfstate`: Any Workspace state files are stored inside this directory
+    - Example
+
+      ```bash
+      |-- terraform.d.tfstate
+      |---- dev
+      |------ terraform.tfstate
+      |---- prod
+      |------ terraform.tfstate
+      ```
 
 ### Debugging Terrform
 
@@ -652,3 +661,76 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
   export TF_LOG=TRACE
   export TF_LOG_PATH=./terraform.log
   ```
+
+---
+
+## Terraform Cloud and Enterprise
+
+- Terraform Cloud
+  - Hashicorp Sentinel
+  - Terraform Vault Provider
+
+### Benefits of Sentinel (Embedded Policy-as-Code Framework)
+
+#### Hashicorp Sentinel - Policy as Code
+
+- Enforces policies on your code
+- Has it own policy language - Sentinel language
+  - The policy ensure that dangerous or malicious Terraform code is stopped before it gets executed or applied via the terraform apply command
+  - Run after Terraform Plan and before Terraform Apply
+- Design to be approachable by non-programers (human readable code)
+
+#### Benefits
+
+- Sandboxing - Guardrails for automation
+  - Stop dev user from deploying into a prod workspace and kind of act as a
+- Codification - Easier understanding, better collaboration
+- Version control
+- Testing and Automation Terraform deployment pipeline
+
+#### Use cases
+
+- For enforcing CIS standards across AWS accounts
+- Checking to make sure only t3.micro instance types are used
+- Ensure Security Group do not allow traffic on port 22
+
+#### Sentinel Sample Code for Terraform
+
+- Ensure that all EC2 instannce have at least 1 tag
+
+  ```bash
+  import "tfplan"
+  main = rule {
+    all tfplan.resources.aws_instance as _, instances {
+      all instances as _ r {
+        (length(r.applied.tags) else 0) > 0
+      }
+    }
+  }
+  ```
+
+### Best Practice: Terraform Vault Provider for Injecting Secrets Securely
+
+Secure sensitive data during your Terraform deployments
+
+#### What is Hashicoro Vault
+
+- Secrets management software
+  - Store sensitive data securely
+  - Provide short-lived temporary credentials to users in place of actual long-lived credentials
+- Dynamically provisions credentials and rotates them
+- Encrypt sensitive data in transit and at rest
+  - Provides fine-grained access to secrets using ACLs
+
+#### Terraform Vault Provider
+
+- Scenario you're deploying to AWS and want to use Vault to inject the CLI access keys for deployment
+  - Vault can integration with AWS Identity and Access Management service
+
+![Terraform Vault Provider](assets/terraform_vault_provider.png)
+
+#### Benefits
+
+- Developers don't need to manage long-lived credentials
+- Inject secrets into your Terraform deployment at runtime
+- Fined-grained ACLs for access to temporary credentials
