@@ -199,6 +199,51 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
   `description/type/default/sensitive`: Variable config arguments\
   Referencing a variable: `var.my-var`
 
+- Variable Type
+  - Input Variable
+    - File: `variables.tf`
+    - Note:
+      - Variable values must be literal values, and cannot use computed values like resource attributes, expressions, or other variables.
+      - If you do not set a default value for a variable, you must assign a value before Terraform can `apply` the configuration.
+  - Sensitive Input Variable
+    - File: `*.tfvars`
+
+      ```terraform
+      db_username = "admin"
+      db_password = "insecurepassword"
+      ```
+
+    - Note:
+      - Apply these changes using the `-var-file` parameter
+      - If don't want to maintain and share the `*.tfvars`\
+        Set values with environment variables
+
+        ```bash
+        export TF_VAR_db_username=admin TF_VAR_db_password=adifferentpassword
+        ```
+
+      - Terraform stores the state as plain text, including variable values, even if you have flagged them as `sensitive`
+  - Locals Variable
+    - File: `locals.tf`
+
+      ```terraform
+      locals {
+        name_suffix = "${var.resource_tags["project"]}-${var.resource_tags["environment"]}"
+      }
+
+       module "vpc" {
+        source  = "terraform-aws-modules/vpc/aws"
+        version = "2.66.0"
+        name = "vpc-${local.name_suffix}"
+        ## ...
+      }
+      ```
+
+    - Note:
+      - Locals don't change values during or between Terraform runs such as `plan`, `apply`, or `destroy`
+      - Unlike `input variables`, `locals` are not set directly by users of your configuration
+      -
+
 - Validation Feature (Optional)
 
   ```terraform
@@ -253,7 +298,8 @@ aws iam list-attached-user-policies --user-name {your_aws_user_name}
 
   `output`: Reversed keyword\
   `"instance_ip"`: User-provided variable name\
-  Output variable values are shown on the shell after running `terraform apply`
+  Output variable values are shown on the shell after running `terraform apply`\
+  Terraform will raise an error, if the output is derived from sensitive variables.
 
 ### Terraform Provisioners
 
